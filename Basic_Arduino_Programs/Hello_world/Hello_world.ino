@@ -1,14 +1,15 @@
+// Initializing arduino pins for the components 
 int led = 13;
 int button = 2;
 
 void setup() {
-  // put your setup code here, to run once:
+  // Initializing pin modes for the components 
   pinMode(led, OUTPUT);
   pinMode(button, INPUT);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  // Sets led on when button is pressed(state is high assuming pull down is used)
   if(digitalRead(button) == HIGH){
     digitalWrite(led, HIGH);
   }

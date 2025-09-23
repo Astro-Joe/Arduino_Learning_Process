@@ -13,6 +13,7 @@ int digits[10][7] = {
   {1,1,1,1,0,1,1}  //9
 }; // 10 by 7 array containing the digits to be displayed.
 // rows represents the digits while columns represnts the pin segments
+
 void setup() {
   for(int i = 0; i < 7; i++){
     pinMode(segPins[i], OUTPUT);
@@ -25,5 +26,4 @@ void loop() {
       digitalWrite(segPins[i], digits[n][i]); // Writes each segPins as the value in each row of array digits
       delay(1000);
     }
-  }
-}
+  }}

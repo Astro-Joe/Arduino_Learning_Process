@@ -14,20 +14,20 @@ unsigned char colPins[COLS] = {6, 7, 8, 9};
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
 // ----- 7-Segment Setup -----
-int segPins[7] = {10,11,12,13,A2,A3,A4}; // a,b,c,d,e,f,g
-int digitPins[2] = {A0, A1}; // Control for two digits
+unsigned char segPins[7] = {10,11,12,13,A2,A3,A4}; // a,b,c,d,e,f,g
+unsigned char digitPins[2] = {A0, A1}; // Control for two digits
 
-int numbers[10][7] = {
-  {1,1,1,1,1,1,0}, //0
-  {0,1,1,0,0,0,0}, //1
-  {1,1,0,1,1,0,1}, //2
-  {1,1,1,1,0,0,1}, //3
-  {0,1,1,0,0,1,1}, //4
-  {1,0,1,1,0,1,1}, //5
-  {1,0,1,1,1,1,1}, //6
-  {1,1,1,0,0,0,0}, //7
-  {1,1,1,1,1,1,1}, //8
-  {1,1,1,1,0,1,1}  //9
+unsigned char numbers[10] = {
+  0b1111110, //0
+  0b0110000, //1
+  0b1101101, //2
+  0b1111001, //3
+  0b0110011, //4
+  0b1011011, //5
+  0b1011111, //6
+  0b1110000, //7
+  0b1111111, //8
+  0b1111011  //9
 };
 
 int num1 = 0, num2 = 0, result = 0;

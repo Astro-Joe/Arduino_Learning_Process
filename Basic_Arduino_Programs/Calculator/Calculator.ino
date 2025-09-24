@@ -1,16 +1,16 @@
 #include <Keypad.h>
 
 // ----- Keypad Setup -----
-const byte ROWS = 4; 
-const byte COLS = 4; 
+const unsigned char ROWS = 4; 
+const unsigned char COLS = 4; 
 char keys[ROWS][COLS] = {
   {'1','2','3','+'},   // S1, S2, S3, S4
   {'4','5','6','-'},   // S5–S8
   {'7','8','9','*'},   // S9–S12
   {'C','0','=','/'}    // S13–S16
-};
-byte rowPins[ROWS] = {2, 3, 4, 5}; 
-byte colPins[COLS] = {6, 7, 8, 9}; 
+}; 
+unsigned char rowPins[ROWS] = {2, 3, 4, 5}; 
+unsigned char colPins[COLS] = {6, 7, 8, 9}; 
 Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 
 // ----- 7-Segment Setup -----

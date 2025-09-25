@@ -4,10 +4,10 @@
 const unsigned char ROWS = 4; 
 const unsigned char COLS = 4; 
 char keys[ROWS][COLS] = {
-  {'1','2','3','+'},   // S1, S2, S3, S4
-  {'4','5','6','-'},   // S5–S8
-  {'7','8','9','*'},   // S9–S12
-  {'C','0','=','/'}    // S13–S16
+	{'1','2','3','+'},   // S1, S2, S3, S4
+	{'4','5','6','-'},   // S5–S8
+	{'7','8','9','*'},   // S9–S12
+	{'C','0','=','/'}    // S13–S16
 }; 
 unsigned char rowPins[ROWS] = {2, 3, 4, 5}; 
 unsigned char colPins[COLS] = {6, 7, 8, 9}; 
@@ -18,38 +18,38 @@ unsigned char segPins[7] = {10,11,12,13,A2,A3,A4}; // a,b,c,d,e,f,g
 unsigned char digitPins[2] = {A0, A1}; // Control for two digits
 
 unsigned char numbers[10] = {
-  0b1111110, //0
-  0b0110000, //1
-  0b1101101, //2
-  0b1111001, //3
-  0b0110011, //4
-  0b1011011, //5
-  0b1011111, //6
-  0b1110000, //7
-  0b1111111, //8
-  0b1111011  //9
-};
+	0b1111110, //0
+	0b0110000, //1
+	0b1101101, //2
+	0b1111001, //3
+	0b0110011, //4
+	0b1011011, //5
+	0b1011111, //6
+	0b1110000, //7
+	0b1111111, //8
+	0b1111011  //9
+}; // Array of the display digits in Bitmasks.
 
-int num1 = 0, num2 = 0, result = 0;
+unsigned char num1 = 0, num2 = 0, result = 0; // Variables to hold the first and second number with the result respectively.
 char op = 0;
-bool enteringNum1 = true;
+bool enteringNum1 = true; // State flag for switching between num1 and num2
 
 // ----- Display Function -----
 void displayNumber(int value) {
-  int tens = (value / 10) % 10;
-  int ones = value % 10;
-
-  // Show tens digit
-  digitalWrite(digitPins[0], LOW);
-  digitalWrite(digitPins[1], HIGH);
-  for(int i=0;i<7;i++) digitalWrite(segPins[i], numbers[tens][i]);
-  delay(5);
-
-  // Show ones digit
-  digitalWrite(digitPins[0], HIGH);
-  digitalWrite(digitPins[1], LOW);
-  for(int i=0;i<7;i++) digitalWrite(segPins[i], numbers[ones][i]);
-  delay(5);
+	int tens = (value / 10) % 10;
+	int ones = value % 10;
+	
+	// Show tens digit
+	digitalWrite(digitPins[0], LOW);
+	digitalWrite(digitPins[1], HIGH);
+	for(int i=0;i<7;i++) digitalWrite(segPins[i], numbers[tens][i]);
+	delay(5);
+	
+	// Show ones digit
+	digitalWrite(digitPins[0], HIGH);
+	digitalWrite(digitPins[1], LOW);
+	for(int i=0;i<7;i++) digitalWrite(segPins[i], numbers[ones][i]);
+	delay(5);
 }
 
 void setup(){

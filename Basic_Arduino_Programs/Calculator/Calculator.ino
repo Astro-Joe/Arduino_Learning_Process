@@ -18,16 +18,17 @@ unsigned char segPins[7] = {10,11,12,13,A2,A3,A4}; // a,b,c,d,e,f,g
 unsigned char digitPins[2] = {A0, A1}; // Control for two digits
 
 unsigned char numbers[10] = {
-	0b1111110, //0
-	0b0110000, //1
-	0b1101101, //2
-	0b1111001, //3
-	0b0110011, //4
-	0b1011011, //5
-	0b1011111, //6
-	0b1110000, //7
-	0b1111111, //8
-	0b1111011  //9
+	0b00111111, // 0
+	0b00000110, // 1
+	0b01011011, // 2
+	0b01001111, // 3
+	0b01100110, // 4
+	0b01101101, // 5
+	0b01111101, // 6
+	0b00000111, // 7
+	0b01111111, // 8
+	0b01101111, // 9
+	0b01000000  // '-'
 }; // Array of the display digits in Bitmasks.
 
 unsigned char num1 = 0, num2 = 0, result = 0; // Variables to hold the first and second number with the result respectively.
@@ -37,18 +38,24 @@ bool enteringNum1 = true; // State flag for switching between num1 and num2
 // ----- Display Function -----
 void displayNumber(int value) {
 	int tens = (value / 10) % 10;
-	int ones = value % 10;
+	int unit = value % 10;
 	
 	// Show tens digit
-	digitalWrite(digitPins[0], LOW);
-	digitalWrite(digitPins[1], HIGH);
-	for(int i=0;i<7;i++) digitalWrite(segPins[i], numbers[tens][i]);
-	delay(5);
-	
+	digitalWrite(digitPins[0], HIGH);
+	digitalWrite(digitPins[1], LOW);
+	// For looping through the bitmask
+	for(int i = 0; 1 < 7; i++){
+		digitalWrite(segPins[i], (numbers[tens] >> i) & 1) 
+	}
+	delay(5)
+
 	// Show ones digit
 	digitalWrite(digitPins[0], HIGH);
 	digitalWrite(digitPins[1], LOW);
-	for(int i=0;i<7;i++) digitalWrite(segPins[i], numbers[ones][i]);
+	// For looping through the bitmask
+	for(int i = 0; i < 7; i++){
+		digitalWrite(segPins[i], (numbers[unit] >> i) & 1);
+	}
 	delay(5);
 }
 

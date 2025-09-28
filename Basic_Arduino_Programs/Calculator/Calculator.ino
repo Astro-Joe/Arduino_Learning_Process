@@ -17,7 +17,7 @@ Keypad keypad = Keypad(makeKeymap(keys), rowPins, colPins, ROWS, COLS);
 unsigned char segPins[7] = {10,11,12,13,A2,A3,A4}; // a,b,c,d,e,f,g
 unsigned char digitPins[2] = {A0, A1}; // Control for two digits
 
-unsigned char numbers[10] = {
+unsigned char numbers[11] = {
 	0b00111111, // 0
 	0b00000110, // 1
 	0b01011011, // 2
@@ -31,7 +31,14 @@ unsigned char numbers[10] = {
 	0b01000000  // '-'
 }; // Array of the display digits in Bitmasks.
 
-unsigned char num1 = 0, num2 = 0, result = 0; // Variables to hold the first and second number with the result respectively.
+unsigned char Error[2] = {
+  0b01111001, // 'E'
+  0b01010000  // 'r'
+}; // Print 'Er' when digit is greater than 99.
+
+
+
+char num1 = 0, num2 = 0, result = 0; // Variables to hold the first and second number with the result respectively.
 char op = 0;
 bool enteringNum1 = true; // State flag for switching between num1 and num2
 
@@ -41,15 +48,15 @@ void displayNumber(int value) {
 	int unit = value % 10;
 	
 	// Show tens digit
-	digitalWrite(digitPins[0], HIGH);
-	digitalWrite(digitPins[1], LOW);
+	digitalWrite(digitPins[0], LOW);
+	digitalWrite(digitPins[1], HIGH);
 	// For looping through the bitmask
-	for(int i = 0; 1 < 7; i++){
-		digitalWrite(segPins[i], (numbers[tens] >> i) & 1) 
+	for(int i = 0; i < 7; i++){
+		digitalWrite(segPins[i], (numbers[tens] >> i) & 1);
 	}
-	delay(5)
+	delay(5);
 
-	// Show ones digit
+	// Show unit digit
 	digitalWrite(digitPins[0], HIGH);
 	digitalWrite(digitPins[1], LOW);
 	// For looping through the bitmask
@@ -59,9 +66,45 @@ void displayNumber(int value) {
 	delay(5);
 }
 
+// ----Display Error Message----
+void ErrorMessage(){
+  for(int d = 0; d < 2; d++){
+    digitalWrite(digitPins[d], LOW);
+
+    for(int i = 0; i < 7; i++){
+      digitalWrite(segPins[i], (Error[d] >> i) & 1);
+    }
+
+    delay(5);
+    digitalWrite(digitPins[d], HIGH);  
+  }
+}
+
+// ---- Display Negative number----
+void NegativeNumber(int value){
+  int absVal = -value;
+
+  // Show minus sign on first digit
+  for (int i = 0; i < 7; i++) {
+    digitalWrite(segPins[i], (numbers[10] >> i) & 1);
+  }
+  digitalWrite(digitPins[0], LOW);   // enable left digit
+  delay(5);
+  digitalWrite(digitPins[0], HIGH);  // disable left digit
+
+  // Show digit on second digit
+  for (int i = 0; i < 7; i++) {
+    digitalWrite(segPins[i], (numbers[absVal] >> i) & 1);
+  }
+  digitalWrite(digitPins[1], LOW);   // enable right digit
+  delay(5);
+  digitalWrite(digitPins[1], HIGH);  // disable right digit
+}
+
+
 void setup(){
-  for(int i=0;i<7;i++) pinMode(segPins[i], OUTPUT);
-  for(int i=0;i<2;i++) pinMode(digitPins[i], OUTPUT);
+  for(int i = 0; i < 7; i++) pinMode(segPins[i], OUTPUT);
+  for(int i = 0; i < 2; i++) pinMode(digitPins[i], OUTPUT);
   Serial.begin(9600);
 }
 
@@ -74,18 +117,29 @@ void loop(){
     if (isdigit(key)) {
       if (enteringNum1) {
         num1 = num1 * 10 + (key - '0');
-        if(num1 > 99) num1 = 99;
+
+        if(num1 > 99){
+          ErrorMessage();
+          num1 = 0;
+        }
         result = num1;
-      } else {
+        }
+    }
+      else {
         num2 = num2 * 10 + (key - '0');
-        if(num2 > 99) num2 = 99;
+        if(num2 > 99){
+          ErrorMessage();
+          num2 = 0;
+        }
         result = num2;
       }
     }
+
     else if (key == '+' || key == '-' || key == '*' || key == '/') {
       op = key;
       enteringNum1 = false;
     }
+
     else if (key == '=') {
       if (op == '+') result = num1 + num2;
       else if (op == '-') result = num1 - num2;
@@ -98,12 +152,12 @@ void loop(){
       num2 = 0;
       enteringNum1 = true;
     }
+
     else if (key == 'C') {
       num1 = num2 = result = 0;
       enteringNum1 = true;
       op = 0;
     }
+    displayNumber(result);
   }
 
-  displayNumber(result);
-}

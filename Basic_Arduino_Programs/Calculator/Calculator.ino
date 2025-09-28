@@ -153,11 +153,24 @@ void loop(){
       enteringNum1 = true;
     }
 
-    else if (key == 'C') {
-      num1 = num2 = result = 0;
-      enteringNum1 = true;
-      op = 0;
+  else if (key == '-') {
+    if (enteringNum1 && num1 == 0) {
+      num1 = -0;  // mark as negative
+    } 
+    else if (!enteringNum1 && num2 == 0) {
+      num2 = -0;  // mark as negative
+    } 
+    else {
+      op = '-';   // subtraction operator
+      enteringNum1 = false;
     }
-    displayNumber(result);
   }
+
+  else if (key == 'C') {
+    num1 = num2 = result = 0;
+    enteringNum1 = true;
+    op = 0;
+  }
+  displayNumber(result);
+ }
 

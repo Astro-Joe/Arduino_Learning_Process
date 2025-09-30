@@ -87,6 +87,8 @@ void ErrorMessage(){
       digitalWrite(segPins[i], (Error[1] >> i) & 1);
     }
     delay(5);
+
+    return;
   }
 }
 
@@ -130,19 +132,18 @@ void loop(){
         num1 = num1 * 10 + (key - '0');
 
         if(num1 > 99){
+          errorState = true;
           ErrorMessage();
-          num1 = 0;
         }
-        result = num1;
-        }
+      }
     
       else if {
         num2 = num2 * 10 + (key - '0');
         if(num2 > 99){
+          errorState = true;
           ErrorMessage();
           num2 = 0;
         }
-        result = num2;
       }
   
 

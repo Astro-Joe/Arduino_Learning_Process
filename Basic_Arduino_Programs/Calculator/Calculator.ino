@@ -42,6 +42,7 @@ char num1 = 0, num2 = 0, result = 0; // Variables to hold the first and second n
 char op = 0;
 bool enteringNum1 = true; // State flag for switching between num1 and num2
 
+
 // ----- Display Function -----
 void displayNumber(int value) {
 	int tens = (value / 10) % 10;
@@ -82,23 +83,24 @@ void ErrorMessage(){
 
 // ---- Display Negative number----
 void NegativeNumber(int value){
-  int absVal = -value;
-
+  int absVal = abs(value);
+  if(value < 0 && absVal < 10){
   // Show minus sign on first digit
-  for (int i = 0; i < 7; i++) {
-    digitalWrite(segPins[i], (numbers[10] >> i) & 1);
+    digitalWrite(digitPins[0], LOW);   // enable left digit
+    digitalWrite(digitPins[1], HIGH);  // disable right digit
+    for (int i = 0; i < 7; i++) {
+      digitalWrite(segPins[i], (numbers[10] >> i) & 1);
+    }
+    delay(5);
+    
+    // Show digit on second digit
+    digitalWrite(digitPins[0], HIGH);   // enable right digit
+    digitalWrite(digitPins[1], LOW);  // disable right digit
+    for (int i = 0; i < 7; i++) {
+      digitalWrite(segPins[i], (numbers[absVal] >> i) & 1);
+    }  
+    delay(5); 
   }
-  digitalWrite(digitPins[0], LOW);   // enable left digit
-  delay(5);
-  digitalWrite(digitPins[0], HIGH);  // disable left digit
-
-  // Show digit on second digit
-  for (int i = 0; i < 7; i++) {
-    digitalWrite(segPins[i], (numbers[absVal] >> i) & 1);
-  }
-  digitalWrite(digitPins[1], LOW);   // enable right digit
-  delay(5);
-  digitalWrite(digitPins[1], HIGH);  // disable right digit
 }
 
 
@@ -124,8 +126,8 @@ void loop(){
         }
         result = num1;
         }
-    }
-      else {
+    
+      else if {
         num2 = num2 * 10 + (key - '0');
         if(num2 > 99){
           ErrorMessage();
@@ -133,44 +135,47 @@ void loop(){
         }
         result = num2;
       }
+  
+
+      else if (key == '+' || key == '-' || key == '*' || key == '/') {
+        op = key;
+        enteringNum1 = false;
+      }
+
+      else if (key == '=') {
+        if (op == '+') result = num1 + num2;
+        else if (op == '-') result = num1 - num2;
+        else if (op == '*') result = num1 * num2;
+        else if (op == '/' && num2 != 0) result = num1 / num2;
+
+        if(result > 99) result = 99; // fit into 2-digit display
+
+        num1 = result;  // allow continuous calculation
+        num2 = 0;
+        enteringNum1 = true;
+      }
+
+    else if (key == '-') {
+      if (enteringNum1 && num1 == 0) {
+        num1 = -0;  // mark as negative
+      } 
+      else if (!enteringNum1 && num2 == 0) {
+        num2 = -0;  // mark as negative
+      } 
+      else {
+        op = '-';   // subtraction operator
+        enteringNum1 = false;
+      }
     }
+    
 
-    else if (key == '+' || key == '-' || key == '*' || key == '/') {
-      op = key;
-      enteringNum1 = false;
+      else if (key == 'C') {
+        num1 = num2 = result = 0;
+        enteringNum1 = true;
+        op = 0;
+      }
     }
-
-    else if (key == '=') {
-      if (op == '+') result = num1 + num2;
-      else if (op == '-') result = num1 - num2;
-      else if (op == '*') result = num1 * num2;
-      else if (op == '/' && num2 != 0) result = num1 / num2;
-
-      if(result > 99) result = 99; // fit into 2-digit display
-
-      num1 = result;  // allow continuous calculation
-      num2 = 0;
-      enteringNum1 = true;
-    }
-
-  else if (key == '-') {
-    if (enteringNum1 && num1 == 0) {
-      num1 = -0;  // mark as negative
-    } 
-    else if (!enteringNum1 && num2 == 0) {
-      num2 = -0;  // mark as negative
-    } 
-    else {
-      op = '-';   // subtraction operator
-      enteringNum1 = false;
-    }
+    displayNumber(result);
   }
-
-  else if (key == 'C') {
-    num1 = num2 = result = 0;
-    enteringNum1 = true;
-    op = 0;
-  }
-  displayNumber(result);
  }
 

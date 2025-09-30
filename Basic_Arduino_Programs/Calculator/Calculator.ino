@@ -41,7 +41,9 @@ unsigned char Error[2] = {
 char num1 = 0, num2 = 0, result = 0; // Variables to hold the first and second number with the result respectively.
 char op = 0;
 bool enteringNum1 = true; // State flag for switching between num1 and num2
-
+bool NegNum1 = false; // default mode 
+bool NegNum2 = false; // default mode
+bool errorState  = false; // default mode
 
 // ----- Display Function -----
 void displayNumber(int value) {

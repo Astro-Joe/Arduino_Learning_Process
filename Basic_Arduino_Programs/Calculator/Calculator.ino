@@ -126,7 +126,8 @@ void loop(){
 
   if (key) {
     Serial.println(key);
-
+    
+    //----For Numbers 0 - 9----
     if (isdigit(key)) {
       if (enteringNum1) {
         num1 = num1 * 10 + (key - '0');
@@ -135,35 +136,38 @@ void loop(){
           errorState = true;
           ErrorMessage();
         }
+        PositiveNumber(num1)
       }
     
-      else if {
+      else {
         num2 = num2 * 10 + (key - '0');
+
         if(num2 > 99){
           errorState = true;
           ErrorMessage();
-          num2 = 0;
         }
+        PositiveNumber(num2)
       }
+    }
   
 
-      else if (key == '+' || key == '-' || key == '*' || key == '/') {
-        op = key;
-        enteringNum1 = false;
-      }
+    else if (key == '+' || key == '-' || key == '*' || key == '/') {
+      op = key;
+      enteringNum1 = false;
+    }
 
-      else if (key == '=') {
-        if (op == '+') result = num1 + num2;
-        else if (op == '-') result = num1 - num2;
-        else if (op == '*') result = num1 * num2;
-        else if (op == '/' && num2 != 0) result = num1 / num2;
+    else if (key == '=') {
+      if (op == '+') result = num1 + num2;
+      else if (op == '-') result = num1 - num2;
+      else if (op == '*') result = num1 * num2;
+      else if (op == '/' && num2 != 0) result = num1 / num2;
 
-        if(result > 99) result = 99; // fit into 2-digit display
+      if(result > 99) result = 99; // fit into 2-digit display
 
-        num1 = result;  // allow continuous calculation
-        num2 = 0;
-        enteringNum1 = true;
-      }
+      num1 = result;  // allow continuous calculation
+      num2 = 0;
+      enteringNum1 = true;
+    }
 
     else if (key == '-') {
       if (enteringNum1 && num1 == 0) {
@@ -185,7 +189,7 @@ void loop(){
         op = 0;
       }
     }
-    displayNumber(result);
+    PositiveNumber(result);
   }
  }
 

@@ -132,22 +132,51 @@ void loop(){
       if (enteringNum1) {
         num1 = num1 * 10 + (key - '0');
 
-        if(num1 > 99){
+        if(NegNum1) {
+          if(num1 < 10) {
+            num1 = -num1;
+            NegativeNumber(num1);
+            NegNum1 = false;
+          }      
+          else {
+            errorState = true;
+            ErrorMessage()
+          }
+        }
+
+        else if(num1 > 99){
           errorState = true;
           ErrorMessage();
         }
-        PositiveNumber(num1)
+        
+        else{
+          PositiveNumber(num1);
+        }
+        
       }
     
-      else {
+      else{
         num2 = num2 * 10 + (key - '0');
 
-        if(num2 > 99){
+        if(NegNum2) {
+          if(num2 < 10) {
+            num2 = -num2;
+            NegativeNumber(num2);
+            NegNum2 = false;
+          }      
+          else {
+            errorState = true;
+            ErrorMessage();
+          }
+        }
+
+        else if(num2 > 99){
           errorState = true;
           ErrorMessage();
         }
         PositiveNumber(num2)
       }
+
     }
   
 
@@ -161,8 +190,14 @@ void loop(){
       else if (op == '-') result = num1 - num2;
       else if (op == '*') result = num1 * num2;
       else if (op == '/' && num2 != 0) result = num1 / num2;
-
-      if(result > 99) result = 99; // fit into 2-digit display
+      else if (op == '/' && num2 == 0) {
+        errorState = true;
+        ErrorMessage();
+      }
+      if(result > 99) {
+        errorState = true;
+        ErrorMessage(); // fit into 2-digit display
+      }
 
       num1 = result;  // allow continuous calculation
       num2 = 0;
@@ -171,8 +206,8 @@ void loop(){
 
     else if (key == '-') {
       if (enteringNum1 && num1 == 0) {
-        num1 = -0;  // mark as negative
-      } 
+        NegNum1 = true;
+      }
       else if (!enteringNum1 && num2 == 0) {
         num2 = -0;  // mark as negative
       } 
@@ -186,6 +221,8 @@ void loop(){
       else if (key == 'C') {
         num1 = num2 = result = 0;
         enteringNum1 = true;
+        NegNum1 = false;
+        NegNum2 = false;
         op = 0;
       }
     }

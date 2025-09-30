@@ -71,15 +71,22 @@ void PositiveNumber(int value) {
 
 // ----Display Error Message----
 void ErrorMessage(){
-  for(int d = 0; d < 2; d++){
-    digitalWrite(digitPins[d], LOW);
+  if(errorState){
+    digitalWrite(digitPins[0], LOW);
+    digitalWrite(digitPins[1], HIGH); 
 
     for(int i = 0; i < 7; i++){
-      digitalWrite(segPins[i], (Error[d] >> i) & 1);
+      digitalWrite(segPins[i], (Error[0] >> i) & 1);
     }
-
     delay(5);
-    digitalWrite(digitPins[d], HIGH);  
+
+    digitalWrite(digitPins[0], HIGH);
+    digitalWrite(digitPins[1], LOW); 
+
+    for(int i = 0; i < 7; i++){
+      digitalWrite(segPins[i], (Error[1] >> i) & 1);
+    }
+    delay(5);
   }
 }
 

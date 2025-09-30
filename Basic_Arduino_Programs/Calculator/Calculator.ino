@@ -46,9 +46,9 @@ bool NegNum2 = false; // default mode
 bool errorState  = false; // default mode
 
 // ----- Display Function -----
-void displayNumber(int value) {
-	int tens = (value / 10) % 10;
-	int unit = value % 10;
+void PositiveNumber(int value) {
+	int tens = (abs(value) / 10) % 10;
+	int unit = abs(value) % 10;
 	
 	// Show tens digit
 	digitalWrite(digitPins[0], LOW);

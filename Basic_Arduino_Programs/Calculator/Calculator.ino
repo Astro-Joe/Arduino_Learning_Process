@@ -43,6 +43,7 @@ char op = 0;
 bool enteringNum1 = true; // State flag for switching between num1 and num2
 bool NegNum1 = false; // default mode 
 bool NegNum2 = false; // default mode
+char display = 0;
 bool errorState  = false; // default mode
 
 // ----- Display Function -----
@@ -71,25 +72,21 @@ void PositiveNumber(int value) {
 
 // ----Display Error Message----
 void ErrorMessage(){
-  if(errorState){
-    digitalWrite(digitPins[0], LOW);
-    digitalWrite(digitPins[1], HIGH); 
+  digitalWrite(digitPins[0], LOW);
+  digitalWrite(digitPins[1], HIGH); 
 
-    for(int i = 0; i < 7; i++){
-      digitalWrite(segPins[i], (Error[0] >> i) & 1);
-    }
-    delay(5);
-
-    digitalWrite(digitPins[0], HIGH);
-    digitalWrite(digitPins[1], LOW); 
-
-    for(int i = 0; i < 7; i++){
-      digitalWrite(segPins[i], (Error[1] >> i) & 1);
-    }
-    delay(5);
-
-    return;
+  for(int i = 0; i < 7; i++){
+    digitalWrite(segPins[i], (Error[0] >> i) & 1);
   }
+  delay(5);
+
+  digitalWrite(digitPins[0], HIGH);
+  digitalWrite(digitPins[1], LOW); 
+
+  for(int i = 0; i < 7; i++){
+    digitalWrite(segPins[i], (Error[1] >> i) & 1);
+  }
+  delay(5);  
 }
 
 // ---- Display Negative number----
@@ -131,37 +128,42 @@ void loop(){
     if (isdigit(key)) {
       if (enteringNum1) {
         num1 = num1 * 10 + (key - '0');
-
+        
+        display = num1;
         if(NegNum1) {
           if(num1 < 10) {
             num1 = -num1;
-            NegativeNumber(num1);
+            display = num1;
             NegNum1 = false;
           }      
           else {
             errorState = true;
-            ErrorMessage()
+            ErrorMessage();
           }
         }
-
-        else if(num1 > 99){
+        else if (num1 > 99){
           errorState = true;
           ErrorMessage();
         }
-        
-        else{
-          PositiveNumber(num1);
-        }
-        
       }
+      
+      
+      
+        
+        ///else{
+        //  PositiveNumber(num1);
+        //}
+        
+      
     
       else{
         num2 = num2 * 10 + (key - '0');
+        display = num2;
 
         if(NegNum2) {
           if(num2 < 10) {
             num2 = -num2;
-            NegativeNumber(num2);
+            display = num2;
             NegNum2 = false;
           }      
           else {
@@ -174,15 +176,26 @@ void loop(){
           errorState = true;
           ErrorMessage();
         }
-        PositiveNumber(num2)
       }
-
     }
   
 
-    else if (key == '+' || key == '-' || key == '*' || key == '/') {
+    else if (key == '+' || key == '*' || key == '/') {
       op = key;
       enteringNum1 = false;
+    }
+
+    else if (key == '-') {
+      if (enteringNum1 && num1 == 0) {
+        NegNum1 = true;
+      }
+      else if (!enteringNum1 && num2 == 0) {
+        NegNum2 = true;  // mark as negative
+      } 
+      else {
+        op = '-';   // subtraction operator
+        enteringNum1 = false;
+      }
     }
 
     else if (key == '=') {
@@ -194,39 +207,36 @@ void loop(){
         errorState = true;
         ErrorMessage();
       }
-      if(result > 99) {
+      if(abs(result) > 99) {
         errorState = true;
         ErrorMessage(); // fit into 2-digit display
       }
 
-      num1 = result;  // allow continuous calculation
+      display = result;  // allow continuous calculation
       num2 = 0;
       enteringNum1 = true;
-    }
+    }    
 
-    else if (key == '-') {
-      if (enteringNum1 && num1 == 0) {
-        NegNum1 = true;
-      }
-      else if (!enteringNum1 && num2 == 0) {
-        num2 = -0;  // mark as negative
-      } 
-      else {
-        op = '-';   // subtraction operator
-        enteringNum1 = false;
-      }
+    else if (key == 'C') {
+      num1 = num2 = result = 0;
+      enteringNum1 = true;
+      NegNum1 = false;
+      NegNum2 = false;
+      op = 0;
+      errorState = false;
+      display = 0;
     }
-    
-
-      else if (key == 'C') {
-        num1 = num2 = result = 0;
-        enteringNum1 = true;
-        NegNum1 = false;
-        NegNum2 = false;
-        op = 0;
-      }
-    }
-    PositiveNumber(result);
   }
- }
+
+  if (errorState) {
+    ErrorMessage();
+  }
+  else if (display < 0){
+    NegativeNumber(display);
+  }
+  else {
+    PositiveNumber(display);
+  }
+  
+}
 

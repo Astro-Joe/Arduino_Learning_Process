@@ -57,9 +57,9 @@ void setup() {
   delay(2000); // Waits for 2 seconds
   lcd.clear();  // Clears the LCD screen
 
-  // --- SD CARD INIT ---
+    // --- SD CARD INIT ---
   bool SD_check = SD.begin(CS_PIN); // Initializes the SD card, returns
-  // a bool depending on whether it has been initialized or not.
+    // a bool depending on whether it has been initialized or not.
 
   if (!SD_check) { // Returns True if the SD card fails to initialize
     lcd.print("SD init failed!");
@@ -70,9 +70,9 @@ void setup() {
   delay(2000); // Waits for 2 seconds 
   lcd.clear(); // Clelars LCD screen
 
-  // --- RTC INIT ---
+    // --- RTC INIT ---
   bool RTC_check = rtc.begin(); // Initializes the RTC module, returns
-  // a bool depending on whether it has been initialized or not.
+    // a bool depending on whether it has been initialized or not.
 
   if (!RTC_check) { // Returns True if RTC fails to initialize 
     lcd.print("RTC failed!");
@@ -81,31 +81,33 @@ void setup() {
   }
 
   if (rtc.lostPower()) { // Checks if the RTC clock chip has lost power 
-  // while the arduino was off
+    // while the arduino was off
     lcd.print("RTC Resetting");
     rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); // Resets clock chip
     // to the date and time the code was last compiled.
     // NTP can be used(on an ESP32) to fetch real time from the internet.
   }
 
-  // --- CREATE/OPEN LOG FILE ---
+   // --- CREATE/OPEN LOG FILE ---
   if(!SD.exists("data.txt")){ // Checks if the file exists, so that the headers would not 
-  // be written after every startup.
+    // be written after every startup.
     logFile = SD.open("data.txt", FILE_WRITE); // Opens a file with the specified file name 
-    // and initializes it for writing.
+      // and initializes it for writing.
     if (logFile) {
-      logFile.println("Date,Time,Temp(C),Humidity(%)");
-      logFile.close();
+      logFile.println("Date,Time,Temp(C),Humidity(%)");  // Column names for sensor data
+      logFile.close(); // Finishes writing data, Frees system resources, closes the 
+      // file to keep the SD card stable.
     }
   }
 }
 
 // ---------------- LOOP ----------------
 void loop() {
-  float humidity = dht.readHumidity();
-  float temperature = dht.readTemperature(); // °C
+  float humidity = dht.readHumidity(); // reads humimdity
+  float temperature = dht.readTemperature(); // reads temperature 
 
-  if (isnan(humidity) || isnan(temperature)) {
+  if (isnan(humidity) || isnan(temperature)) { // Checks if the sensor returned as 
+    // valdid value
     lcd.setCursor(0, 0);
     lcd.print("Sensor Error!   ");
     return;
@@ -113,14 +115,14 @@ void loop() {
 
   // --- DISPLAY ON LCD ---
   lcd.setCursor(0, 0);
-  lcd.print("Temp:");
-  lcd.print(temperature, 1);
-  lcd.print("C   ");
+  lcd.print("Temp: ");
+  lcd.print(temperature, 4); // Prints the temperature in 4 decimal places
+  lcd.print("C");
 
   lcd.setCursor(0, 1);
   lcd.print("Hum: ");
-  lcd.print(humidity, 1);
-  lcd.print("%   ");
+  lcd.print(humidity, 2); // Prints humdity in 2 decimal places
+  lcd.print("%");
 
   alert = false;
 

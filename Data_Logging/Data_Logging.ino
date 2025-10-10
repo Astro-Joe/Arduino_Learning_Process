@@ -103,6 +103,8 @@ void setup() {
 
 // ---------------- LOOP ----------------
 void loop() {
+  alert = false;
+
   float humidity = dht.readHumidity(); // reads humimdity
   float temperature = dht.readTemperature(); // reads temperature 
 
@@ -124,7 +126,6 @@ void loop() {
   lcd.print(humidity, 2); // Prints humdity in 2 decimal places
   lcd.print("%");
 
-  alert = false;
 
   // Reset indicators
   digitalWrite(LED_TEMP_HIGH, LOW);

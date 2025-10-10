@@ -28,8 +28,8 @@ DHT dht(DHTPIN, DHTTYPE);
 RTC_DS3231 rtc;
 
 // ---------------- THRESHOLDS ----------------
-float maxTemp = 30.0;
-float minTemp = 15.0;
+float maxTemp = 30.000000;
+float minTemp = 15.000000;
 float maxHum  = 70.0;
 float minHum  = 30.0;
 
@@ -105,6 +105,12 @@ void setup() {
 void loop() {
   alert = false;
 
+  // Reset indicators
+  digitalWrite(LED_TEMP_HIGH, LOW);
+  digitalWrite(LED_TEMP_NORMAL, LOW);
+  digitalWrite(LED_HUMID_LOW, LOW);
+  digitalWrite(LED_HUMID_NORMAL, LOW);
+
   float humidity = dht.readHumidity(); // reads humimdity
   float temperature = dht.readTemperature(); // reads temperature 
 
@@ -118,20 +124,13 @@ void loop() {
   // --- DISPLAY ON LCD ---
   lcd.setCursor(0, 0);
   lcd.print("Temp: ");
-  lcd.print(temperature, 4); // Prints the temperature in 4 decimal places
+  lcd.print(temperature, 2); // Prints the temperature in 4 decimal places
   lcd.print("C");
 
   lcd.setCursor(0, 1);
   lcd.print("Hum: ");
-  lcd.print(humidity, 2); // Prints humdity in 2 decimal places
+  lcd.print(humidity, 1); // Prints humdity in 2 decimal places
   lcd.print("%");
-
-
-  // Reset indicators
-  digitalWrite(LED_TEMP_HIGH, LOW);
-  digitalWrite(LED_TEMP_NORMAL, LOW);
-  digitalWrite(LED_HUMID_LOW, LOW);
-  digitalWrite(LED_HUMID_NORMAL, LOW);
 
   // ---------------- TEMPERATURE LOGIC ----------------
   if (temperature > maxTemp) {
@@ -145,57 +144,67 @@ void loop() {
   if (humidity < minHum) {
     digitalWrite(LED_HUMID_LOW, HIGH); // Yellow → low humidity
     alert = true;
-  } else if (humidity > maxHum) {
+  } 
+  else if (humidity > maxHum) {
     // Blink blue LED for high humidity
-    if (millis() / 500 % 2 == 0)
+    if (millis() / 500 % 2 == 0) { // millis() returns the number of ms that has passed 
+    //since the arduino board started running the current program. 
       digitalWrite(LED_HUMID_NORMAL, HIGH);
-    else
-      digitalWrite(LED_HUMID_NORMAL, LOW);
+    }
     alert = true;
-  } else {
+  } 
+  else {
     digitalWrite(LED_HUMID_NORMAL, HIGH); // Blue → normal humidity
   }
 
   // ---------------- BUZZER LOGIC ----------------
   unsigned long currentMillis = millis();
   if (alert) {
-    if (currentMillis - previousBuzzMillis >= buzzInterval) {
+    if (currentMillis - previousBuzzMillis >= buzzInterval) { // Makes sure there is a 500ms interval between the buzzer 
+    // going ON or OFF
       previousBuzzMillis = currentMillis;
       buzzerState = !buzzerState;
-      digitalWrite(BUZZER, buzzerState ? HIGH : LOW);
+      digitalWrite(BUZZER, buzzerState ? HIGH : LOW); // Shorthand for; if buzzerState, HIGH; else, LOW.
     }
-  } else {
+  } 
+  else {
     digitalWrite(BUZZER, LOW);
     buzzerState = false;
   }
 
   // ---------------- LOG TO SD ----------------
-  DateTime now = rtc.now();
-  logFile = SD.open("data.txt", FILE_WRITE);
+  DateTime now = rtc.now(); // Stores the current Date/Time from the DTC module
+  logFile = SD.open("data.txt", FILE_WRITE); // Opens/Create a file for writing
+  
+  //----WRITING DATA IN .CSV FORMAT---
   if (logFile) {
+    // YYYY-MM-DD FORMAT
     logFile.print(now.year(), DEC); logFile.print("-");
     logFile.print(now.month(), DEC); logFile.print("-");
     logFile.print(now.day(), DEC);
     logFile.print(",");
 
+    // HH:MM:SS FORMAT
     logFile.print(now.hour(), DEC); logFile.print(":");
     logFile.print(now.minute(), DEC); logFile.print(":");
     logFile.print(now.second(), DEC);
     logFile.print(",");
 
-    logFile.print(temperature, 1);
+    // TEMPERATURE AND HUMIDITY STORED WITH 2 AND 1 DP RESPECTIVELY 
+    logFile.print(temperature, 2);
     logFile.print(",");
     logFile.println(humidity, 1);
     logFile.close();
 
-    // Blink green LED (preserve previous state)
+    // Blink green LED to indicate successful data writing(preserves previous state)
     int prev = digitalRead(LED_TEMP_NORMAL);
     digitalWrite(LED_TEMP_NORMAL, prev == HIGH ? LOW : HIGH);
-    delay(300);
+    delay(500);
     digitalWrite(LED_TEMP_NORMAL, prev);
-  } else {
+  } 
+  else {
     lcd.setCursor(0, 0);
-    lcd.print("SD Write Error  ");
+    lcd.print("SD Write Error"); // Prints an error when writing of data fails
   }
 
   // Wait 2 minutes before next reading

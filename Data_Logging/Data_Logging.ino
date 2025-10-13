@@ -7,7 +7,7 @@
 
 // ---------------- LCD SETUP ----------------
 // (RS, E, D4, D5, D6, D7)
-LiquidCrystal lcd(7, 6, 5, 4, 3, 2);
+LiquidCrystal lcd(2, 3, 4, 5, 6, 7);
 
 // ---------------- DHT SENSOR ----------------
 #define DHTPIN 8
@@ -22,7 +22,7 @@ DHT dht(DHTPIN, DHTTYPE);
 #define BUZZER A3             // Buzzer → Sound alert on abnormal readings
 
 // ---------------- SD CARD ----------------
-#define CS_PIN 10
+#define CS_PIN 4
 
 // ---------------- RTC ----------------
 RTC_DS3231 rtc;
@@ -125,7 +125,7 @@ void loop() {
   lcd.setCursor(0, 0);
   lcd.print("Temp: ");
   lcd.print(temperature, 2); // Prints the temperature in 4 decimal places
-  lcd.print("C");
+    lcd.print("C");
 
   lcd.setCursor(0, 1);
   lcd.print("Hum: ");
@@ -133,12 +133,12 @@ void loop() {
   lcd.print("%");
 
   // ---------------- TEMPERATURE LOGIC ----------------
-  if (temperature > maxTemp) {
+    if (temperature > maxTemp) {
     digitalWrite(LED_TEMP_HIGH, HIGH); // Red → high temperature
     alert = true;
   } else {
     digitalWrite(LED_TEMP_NORMAL, HIGH); // Green → normal
-  }
+  } 
 
   // ---------------- HUMIDITY LOGIC ----------------
   if (humidity < minHum) {
@@ -164,7 +164,7 @@ void loop() {
     // going ON or OFF
       previousBuzzMillis = currentMillis;
       buzzerState = !buzzerState;
-      digitalWrite(BUZZER, buzzerState ? HIGH : LOW); // Shorthand for; if buzzerState, HIGH; else, LOW.
+//      digitalWrite(BUZZER, buzzerState ? HIGH : LOW); // Shorthand for; if buzzerState, HIGH; else, LOW.
     }
   } 
   else {
@@ -207,6 +207,6 @@ void loop() {
     lcd.print("SD Write Error"); // Prints an error when writing of data fails
   }
 
-  // Wait 2 minutes before next reading
-  delay(120000);
+  // Wait 2 minutes before next reading 
+  delay(120000); 
 }

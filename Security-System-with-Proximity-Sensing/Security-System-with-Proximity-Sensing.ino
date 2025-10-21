@@ -43,6 +43,24 @@ RTC_DS3231 rtc;
 
 //---SD card Initialaization---
 
+//---Loading Animation---
+void loading_animation(unsigned char char_length){
+  for (unsigned char i = 0; i < 4; i++) {
+    lcd.setCursor(char_length , 0); // cycles between 3 dots
+    lcd.print(".");
+    delay(300);
+    lcd.setCursor(char_length, 0);
+    lcd.print("..");
+    delay(300);
+    lcd.setCursor(char_length, 0); // cycles between 3 dots
+    lcd.print("...");
+    delay(300);
+    lcd.setCursor(char_length, 0); // cycles between 3 dots
+    lcd.print("   ");
+  }
+  lcd.noBlink();
+  delay(300);
+}
 
 void setup() {
 
@@ -68,20 +86,12 @@ void setup() {
     lcd.print(screen_2[i]);
     delay(100);
   }
-  
-  //---Loading Animation---
-  for (unsigned char i = 0; i < 3; i++){
-    lcd.blink();
-    String screen_3 = "...";
-    for (unsigned char j = 0; j < screen_3.length(); j++){
-      lcd.print(screen_3[j]);
-      delay(500);
-    }
-  lcd.setCursor(11, 0);
-  }
+  loading_animation(10);
   lcd.clear();
   
-  lcd.print("RTC Init...");
+  lcd.print("RTC Init");
+  loading_animation(8);
+  lcd.clear();
   if (!rtc.begin()) {
     lcd.clear();
     lcd.print("RTC FAIL!");

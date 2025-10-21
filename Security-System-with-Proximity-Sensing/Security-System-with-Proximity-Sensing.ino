@@ -43,6 +43,14 @@ RTC_DS3231 rtc;
 
 //---SD card Initialaization---
 
+//---Display function---
+void display(String sentence) {
+  for (unsigned char i = 0; i < sentence.length(); i++){
+  lcd.print(sentence[i]);
+  delay(100);
+  }
+}
+
 //---Loading Animation---
 void loading_animation(unsigned char char_length){
   for (unsigned char i = 0; i < 4; i++) {
@@ -74,22 +82,17 @@ void setup() {
   digitalWrite(lcd_backlight, HIGH);
 
   String screen_1 = "Security System_";
-  for (unsigned char i = 0; i < screen_1.length(); i++){
-    lcd.print(screen_1[i]);
-    delay(100);
-  }
+  display(screen_1);
   delay(1000);
   lcd.clear();
 
   String screen_2 = "System Init";
-  for (unsigned char i = 0; i < screen_2.length(); i++){
-    lcd.print(screen_2[i]);
-    delay(100);
-  }
+  display(screen_2);
   loading_animation(10);
   lcd.clear();
   
-  lcd.print("RTC Init");
+  String screen_3 = "RTC Init";
+  display(screen_3);
   loading_animation(8);
   lcd.clear();
   if (!rtc.begin()) {

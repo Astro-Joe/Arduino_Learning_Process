@@ -10,7 +10,8 @@
 const bool backlight_switch = true;
 #define BACKLIGHT_ON_LEVEL  (backlight_switch ? LOW  : HIGH)
 #define BACKLIGHT_OFF_LEVEL (backlight_switch ? HIGH : LOW)
-#define CS_Pin 10;
+//---SD Chip Select Pin---
+#define CS_Pin 10
 
 int lcd_backlight = A0;
 float distance;
@@ -41,8 +42,6 @@ Keypad keypad = Keypad(makeKeymap(keys), row_pins, column_pins, rows, columns);
 //---RTC Initialization---
 RTC_DS3231 rtc;
 
-//---SD card Initialaization---
-
 //---Display function---
 void display(String sentence) {
   for (unsigned char i = 0; i < sentence.length(); i++){
@@ -70,6 +69,7 @@ void loading_animation(unsigned char char_length){
   delay(300);
 }
 
+
 void setup() {
 
   //---Initializing Serial monitor and LCD
@@ -81,14 +81,14 @@ void setup() {
   pinMode(lcd_backlight, OUTPUT);
   digitalWrite(lcd_backlight, HIGH);
 
-  String screen_1 = "Security System_";
+  String screen_1 = "Security System";
   display(screen_1);
-  delay(1000);
+  delay(2000);
   lcd.clear();
 
   String screen_2 = "System Init";
   display(screen_2);
-  loading_animation(10);
+  loading_animation(11);
   lcd.clear();
   
   String screen_3 = "RTC Init";
@@ -96,11 +96,37 @@ void setup() {
   loading_animation(8);
   lcd.clear();
   if (!rtc.begin()) {
-    lcd.clear();
-    lcd.print("RTC FAIL!");
+    String screen_4 = "RTC Failed";
+    for (unsigned char i = 0; i < 3; i++) { 
+      display(screen_4);
+      delay(200);
+      lcd.clear();
+    }
+    lcd.print(screen_4);
     Serial.println("RTC FAIL - halting");
     while (1); // Halt if RTC not found
-  } 
+  }
+
+  //---SD card Initialaization---
+  pinMode(CS_Pin, OUTPUT);
+  digitalWrite(CS_Pin, HIGH);
+  
+  String screen_5 = "SD Init";
+  display(screen_5);
+  loading_animation(7);
+  lcd.clear();
+
+  if (!SD.begin(CS_Pin)) {
+    String screen_6 = "SD Failed";
+    for (unsigned char i = 0; i < 3; i++) { 
+      display(screen_6);
+      delay(200);
+      lcd.clear();
+    }
+    lcd.print(screen_6);
+    Serial.println("SD FAIL - halting");
+    while (1); // Halt if RTC not found
+  }
 } 
 
 void loop() { 
@@ -113,7 +139,7 @@ void loop() {
   }
   else {
     // after 6000 ms -> follow the distance rule
-    if (distance >= 29.0) {
+    if (distance >= 31.0) {
       digitalWrite(lcd_backlight, BACKLIGHT_ON_LEVEL);   // ON
     } else {
       digitalWrite(lcd_backlight, BACKLIGHT_OFF_LEVEL);  // OFF

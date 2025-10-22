@@ -7,14 +7,14 @@
 #include <LiquidCrystal.h>
 #include <HCSR04.h>
 
-const bool backlight_switch = true;
+const bool backlight_switch = false;
 #define BACKLIGHT_ON_LEVEL  (backlight_switch ? LOW  : HIGH)
 #define BACKLIGHT_OFF_LEVEL (backlight_switch ? HIGH : LOW)
 //---SD Chip Select Pin---
 #define CS_Pin 10
 
 int lcd_backlight = A0;
-float distance;
+int distance;
 
 //---LCD pins Initialization---
 // RS, E, D4, D5, D6, D7
@@ -34,10 +34,10 @@ char keys [rows][columns] = {
   {'#', '0', '*'}
 };
 unsigned char row_pins[rows] = {A1, A2, A3, A4};
-unsigned char column_pins[columns] = {A5, 0, 1};
+//unsigned char column_pins[columns] = {A5, 0, 1};
 
 //---Keypad Initialization---
-Keypad keypad = Keypad(makeKeymap(keys), row_pins, column_pins, rows, columns);
+//Keypad keypad = Keypad(makeKeymap(keys), row_pins, column_pins, rows, columns);
 
 //---RTC Initialization---
 RTC_DS3231 rtc;
@@ -52,7 +52,7 @@ void display(String sentence) {
 
 //---Loading Animation---
 void loading_animation(unsigned char char_length){
-  for (unsigned char i = 0; i < 4; i++) {
+  for (unsigned char i = 0; i < 3; i++) {
     lcd.setCursor(char_length , 0); // cycles between 3 dots
     lcd.print(".");
     delay(300);
@@ -81,77 +81,87 @@ void setup() {
   pinMode(lcd_backlight, OUTPUT);
   digitalWrite(lcd_backlight, HIGH);
 
-  String screen_1 = "Security System";
-  display(screen_1);
+  display("Security System");
   delay(2000);
   lcd.clear();
 
-  String screen_2 = "System Init";
-  display(screen_2);
+  display("System Init");
   loading_animation(11);
   lcd.clear();
   
-  String screen_3 = "RTC Init";
-  display(screen_3);
+
+  display("RTC Init");
   loading_animation(8);
   lcd.clear();
+
   if (!rtc.begin()) {
-    String screen_4 = "RTC Failed";
-    for (unsigned char i = 0; i < 3; i++) { 
-      display(screen_4);
-      delay(200);
-      lcd.clear();
-    }
-    lcd.print(screen_4);
+    lcd.print("RTC Failed");
     Serial.println("RTC FAIL - halting");
     while (1); // Halt if RTC not found
   }
+  else {
+  display("RTC Configured   ");
+  lcd.clear();
+  }
+
 
   //---SD card Initialaization---
   pinMode(CS_Pin, OUTPUT);
   digitalWrite(CS_Pin, HIGH);
-  
-  String screen_5 = "SD Init";
-  display(screen_5);
+  display("SD Init");
   loading_animation(7);
   lcd.clear();
 
   if (!SD.begin(CS_Pin)) {
-    String screen_6 = "SD Failed";
-    for (unsigned char i = 0; i < 3; i++) { 
-      display(screen_6);
-      delay(200);
-      lcd.clear();
-    }
-    lcd.print(screen_6);
+    lcd.print("SD Failed");
     Serial.println("SD FAIL - halting");
     while (1); // Halt if RTC not found
   }
+  else {
+  display("SD Configured   ");
+  lcd.clear();
+  }
+
 } 
 
 void loop() { 
-  //Serial.println(millis());
-  int distance = hc.dist();
-  Serial.println(distance);
+  distance = hc.dist();
+
+  unsigned long now = millis();
+  Serial.print("millis: ");
+  Serial.print(now);
+  Serial.print("   ");
+
+  Serial.print("distance: ");
+  Serial.print(distance);
+  Serial.println();
+
+  lcd.setCursor(0, 0);
+  lcd.print("DistKeypad:");
+  lcd.print(distance);
+  lcd.print("cm   ");
+
   unsigned long current_millis = millis();
-  if (current_millis < 6000UL) {
+  if (current_millis < 18497UL) {
     digitalWrite(lcd_backlight, BACKLIGHT_ON_LEVEL);
   }
   else {
     // after 6000 ms -> follow the distance rule
-    if (distance >= 31.0) {
+    if (distance <= 29.0 && distance > 6.0) {
       digitalWrite(lcd_backlight, BACKLIGHT_ON_LEVEL);   // ON
-    } else {
+      lcd.setCursor(0, 1);
+      lcd.print("LCDbacklight ON!");
+    } 
+    else if (distance < 5.0) {
       digitalWrite(lcd_backlight, BACKLIGHT_OFF_LEVEL);  // OFF
+      lcd.setCursor(0, 1);
+      lcd.print("                  ");
+    }
+    else {
+      digitalWrite(lcd_backlight, BACKLIGHT_OFF_LEVEL);
+      lcd.setCursor(0, 1);
+      lcd.print("                  ");
     }
   }
-
-  
-  //---Checking if a key has been pressed---
-  char key = keypad.getKey();
-  if(key != NO_KEY) {
-    Serial.println(key);
-  }
-
-// delay(1000); 
+  delay(300);
 }

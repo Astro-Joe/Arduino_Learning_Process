@@ -5,6 +5,7 @@
   #include <LiquidCrystal.h>
   #include <HCSR04.h>
 
+  const bool condition_check = true;
   const bool backlight_switch = false;
   #define BACKLIGHT_ON_LEVEL  (backlight_switch ? LOW  : HIGH)
   #define BACKLIGHT_OFF_LEVEL (backlight_switch ? HIGH : LOW)
@@ -36,6 +37,7 @@
 
   //---Keypad Initialization---
   Keypad keypad = Keypad(makeKeymap(keys), row_pins, column_pins, rows, columns);
+  char key = keypad.getKey(); 
 
   //---RTC Initialization---
   RTC_DS3231 rtc;
@@ -48,7 +50,7 @@
     }
   }
 
-  //---Loading Animation---
+  //---Loading Animation Screen---
   void loading_animation(unsigned char col, unsigned char row){
     for (unsigned char i = 0; i < 3; i++) {
       lcd.setCursor(col, row); // cycles between 3 dots
@@ -76,6 +78,68 @@
     lcd.print("2. Login");
   }
 
+  //---System Config screen---
+  void system_config() {
+    while (condition_check) {
+      if (key) {
+        unsigned char esc = key - '0';
+        if (esc == 0) {
+          option_menu();
+        }
+        else {
+        display("System Init");
+        lcd.setCursor(0, 1);
+        lcd.print("Press 0 to skip");
+        loading_animation(11, 0);
+
+        lcd.clear();
+        
+        //---RTC Initialization---
+        display("RTC Init");
+        lcd.setCursor(0, 1);
+        lcd.print("Press 0 to skip");
+        loading_animation(8, 0);
+        lcd.clear();
+
+        if (!rtc.begin()) {
+          lcd.print("RTC Failed");
+          //Serial.println("RTC FAIL - halting");
+          while (true) {
+
+          } // Halt if RTC not found
+        }
+        else {
+        display("RTC Configured   ");
+        lcd.clear();
+        }
+
+        //---SD card Initialaization---
+        pinMode(CS_Pin, OUTPUT);
+        digitalWrite(CS_Pin, HIGH);
+        display("SD Init");
+        lcd.setCursor(0, 1);
+        lcd.print("Press 0 to skip");
+        loading_animation(7, 0);
+        lcd.clear();
+
+        if (!SD.begin(CS_Pin)) {
+          lcd.print("SD Failed");
+          lcd.setCursor(0, 1);
+          lcd.print("Press 0 to skip");
+          //Serial.println("SD FAIL - halting");
+          while (true) {
+
+          } // Halt if RTC not found
+        }
+        else {
+        display("SD Configured   ");
+        lcd.clear();
+        }
+        }
+      }
+    }
+  }
+
 
   void setup() {
 
@@ -92,42 +156,7 @@
     delay(2000);
     lcd.clear();
 
-    display("System Init");
-    loading_animation(11, 0);
-    lcd.clear();
-    
-
-    display("RTC Init");
-    loading_animation(8, 0);
-    lcd.clear();
-
-    if (!rtc.begin()) {
-      lcd.print("RTC Failed");
-      Serial.println("RTC FAIL - halting");
-      while (1); // Halt if RTC not found
-    }
-    else {
-    display("RTC Configured   ");
-    lcd.clear();
-    }
-
-
-    //---SD card Initialaization---
-    pinMode(CS_Pin, OUTPUT);
-    digitalWrite(CS_Pin, HIGH);
-    display("SD Init");
-    loading_animation(7, 0);
-    lcd.clear();
-
-    if (!SD.begin(CS_Pin)) {
-      lcd.print("SD Failed");
-      Serial.println("SD FAIL - halting");
-      while (1); // Halt if RTC not found
-    }
-    else {
-    display("SD Configured   ");
-    lcd.clear();
-    }
+    system_config();
 
     //---Password entry display---
     lcd.setCursor(0, 0);
@@ -183,10 +212,9 @@
       }
     }
 
-    char key = keypad.getKey(); 
     if (key) {
 
-      int num = key - '0'; // converts from ASCII value to the real value
+      unsigned char num = key - '0'; // converts from ASCII value to the real value
       //Serial.println(key);
       if(num == 1){
         lcd.clear();

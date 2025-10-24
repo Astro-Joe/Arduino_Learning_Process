@@ -55,7 +55,7 @@ void setup() {
   lcd.clear();
 
   // Create/open CSV log file
-  dataFile = SD.open("solarV.csv", FILE_WRITE);
+  dataFile = SD.open("solar_voltage.csv", FILE_WRITE);
   if (dataFile) {
     dataFile.println("Date,Time,Voltage(V)");
     dataFile.close();
@@ -85,7 +85,7 @@ void loop() {
   String dataString = String(dateStr) + "," + String(timeStr) + "," + String(voltage, 2);
 
   // Write to SD card
-  dataFile = SD.open("solarV.csv", FILE_WRITE);
+  dataFile = SD.open("solar_voltage.csv", FILE_WRITE);
   if (dataFile) {
     dataFile.println(dataString);
     dataFile.close();

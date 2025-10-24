@@ -5,10 +5,8 @@
   #include <LiquidCrystal.h>
   #include <HCSR04.h>
 
-  unsigned long now = millis();
-  unsigned long last_check = 0;
-  const byte interval = 300;
-  const bool condition_check = true;
+  const unsigned long interval = 300UL;
+  bool condition_check = true;
   const bool backlight_switch = false;
   #define BACKLIGHT_ON_LEVEL  (backlight_switch ? LOW  : HIGH)
   #define BACKLIGHT_OFF_LEVEL (backlight_switch ? HIGH : LOW)
@@ -27,27 +25,26 @@
   HCSR04 hc(8, 9);
 
   //---Keypad Initialization---
-  const byte rows = 4;
-  const byte columns = 3;
+  const unsigned char rows = 4;
+  const unsigned char columns = 3;
   char keys [rows][columns] = {
     {'1', '2', '3'},
     {'4', '5', '6'},
     {'7', '8', '9'},
     {'*', '0', '@'}
   };
-  byte row_pins[rows] = {A1, A5, A3, A4};
-  byte column_pins[columns] = {A2, 0, 1};
+  unsigned char row_pins[rows] = {A1, A5, A3, A4};
+  unsigned char column_pins[columns] = {A2, 0, 1};
 
   //---Keypad Initialization---
   Keypad keypad = Keypad(makeKeymap(keys), row_pins, column_pins, rows, columns);
-  char key = keypad.getKey(); 
 
   //---RTC Initialization---
   RTC_DS3231 rtc;
 
   //---Display function---
   void display(String sentence) {
-    for (byte i = 0; i < sentence.length(); i++){
+    for (unsigned char i = 0; i < sentence.length(); i++){
     lcd.print(sentence[i]);
     delay(100);
     }
@@ -59,8 +56,8 @@
     lcd.setCursor(0, 0);
     lcd.print("Press a number");
     lcd.setCursor(0, 1);
-    lcd.print("to select");
-    delay(3000); 
+    lcd.print("to select      ");
+    delay(2000); 
 
     lcd.clear();
 
@@ -73,57 +70,61 @@
 
 
   //---Escape Key---
-  void escape_key() {
-    if (key) {
-      byte esc = key - '0';
-      if (esc == 0) {
-        condition_check = false;
-        option_menu();
-        return;
-      }
+  bool escape_key() {
+    char key = keypad.getKey(); 
+    if (key == '0') {
+      option_menu();
+      return true;
     }
+    return false;
   }
 
 
   //---Loading Animation Screen---
-  void loading_animation(byte col, byte row){ 
-    byte case_number = 0; 
-    byte cycle = 0;   
+  bool loading_animation(unsigned char col, unsigned char row) {
+    unsigned long last_check = 0;
+    unsigned char case_number = 0; 
+    unsigned char cycle = 0;   
     while (cycle < 3) {
-      while (case_number < 3) {
+      unsigned long now = millis();
+      if (now - last_check >= interval){
         last_check = now;
-        if (now - last_check >= interval){
-          last_check = now;
-          lcd.setCursor(col, row);      
-          switch (case_number) {
-            case 0:
-              lcd.print(".");
-              break;
-            case 1:
-              lcd.print("..");
-              break;
-            case 2:
-              lcd.print("...");
-              break;
-          }
-          case_number++;
-          if (case_number >=3) {
+        lcd.setCursor(col, row);      
+        switch (case_number) {
+          case 0:
+            lcd.print("."); break;
+          case 1:
+            lcd.print(".."); break;
+          case 2:
+            lcd.print("..."); break;
+          case 3:
+            lcd.print("   "); break;
+        }
+        case_number++;
+        if (case_number >=4) {
           cycle++;
           case_number = 0;
         }
-        escape_key();
       }
+      if (escape_key()) {
+        return true;
+      }
+      delay(1);  
     }
+    return false;
   }
-  
+        
 
   //---System Config screen---
-  void system_config() {
+  bool system_config(){
     display("System Init");
     lcd.setCursor(0, 1);
     lcd.print("Press 0 to skip");
-    loading_animation(11, 0);
-    escape_key();
+    if (loading_animation(11, 0)) {
+      return true;
+    }
+
+    //escape_key();
 
     lcd.clear();
     
@@ -131,8 +132,10 @@
     display("RTC Init");
     lcd.setCursor(0, 1);
     lcd.print("Press 0 to skip");
-    loading_animation(8, 0);
-    escape_key();
+    if (loading_animation(8, 0)) {
+      return true;
+    }
+    //escape_key();
     lcd.clear();
 
     if (!rtc.begin()) {
@@ -141,7 +144,9 @@
       lcd.print("Press 0 to skip");
       //Serial.println("RTC FAIL - halting");
       while (condition_check) {
-          escape_key();
+        if (escape_key()) {
+          condition_check = false;
+        }
       } // Halt if RTC not found
     }
     else {
@@ -150,12 +155,15 @@
     }
 
     //---SD card Initialaization---
+    condition_check = true;
     pinMode(CS_Pin, OUTPUT);
     digitalWrite(CS_Pin, HIGH);
     display("SD Init");
     lcd.setCursor(0, 1);
     lcd.print("Press 0 to skip");
-    loading_animation(7, 0);
+    if (loading_animation(11, 0)) {
+      return true;
+    }
     lcd.clear();
 
     if (!SD.begin(CS_Pin)) {
@@ -164,13 +172,16 @@
       lcd.print("Press 0 to skip");
       //Serial.println("SD FAIL - halting");
       while (condition_check) {
-        escape_key();
+        if (escape_key()) {
+          condition_check = false;
+        }
       } // Halt if RTC not found
     }
     else {
       display("SD Configured   ");
       lcd.clear();
-    }   
+    }  
+    return false;
   }
 
 
@@ -189,15 +200,21 @@
     delay(2000);
     lcd.clear();
 
-    system_config();
+    //system_config();
+
+    if (system_config()) {
+      return;
+    }
 
     lcd.clear();
 
-    option_menu();                                                                                                                                                                                                           
+    option_menu();    
+    delay(300);                                                                                                                                                                                                       
   } 
 
   void loop() { 
     distance = hc.dist();
+    char key = keypad.getKey(); 
 
     //unsigned long now = millis();
 
@@ -216,31 +233,28 @@
     lcd.print("cm   "); */
     //---Debugging purpose--- 
 
-    if (now < 23512UL) {
-      digitalWrite(lcd_backlight, BACKLIGHT_ON_LEVEL);
+
+    // after 6000 ms -> follow the distance rule
+    if (distance <= 45.0 && distance > 6.0) {
+      digitalWrite(lcd_backlight, BACKLIGHT_ON_LEVEL);   // ON
+      /*lcd.setCursor(0, 1);
+      lcd.print("LCDbacklight ON!"); */ //Debugging purpose
+    } 
+    else if (distance < 5.0) {
+      digitalWrite(lcd_backlight, BACKLIGHT_OFF_LEVEL);  // OFF
+      /*lcd.setCursor(0, 1);
+      lcd.print("                  "); */ //Debugging purpose
     }
     else {
-      // after 6000 ms -> follow the distance rule
-      if (distance <= 45.0 && distance > 6.0) {
-        digitalWrite(lcd_backlight, BACKLIGHT_ON_LEVEL);   // ON
-        /*lcd.setCursor(0, 1);
-        lcd.print("LCDbacklight ON!"); */ //Debugging purpose
-      } 
-      else if (distance < 5.0) {
-        digitalWrite(lcd_backlight, BACKLIGHT_OFF_LEVEL);  // OFF
-        /*lcd.setCursor(0, 1);
-        lcd.print("                  "); */ //Debugging purpose
-      }
-      else {
-        digitalWrite(lcd_backlight, BACKLIGHT_OFF_LEVEL);
-        /*lcd.setCursor(0, 1);
-        lcd.print("                  "); */ //Debugging purpose
-      }
+      digitalWrite(lcd_backlight, BACKLIGHT_OFF_LEVEL);
+      /*lcd.setCursor(0, 1);
+      lcd.print("                  "); */ //Debugging purpose
     }
+    
 
     if (key) {
 
-      byte num = key - '0'; // converts from ASCII value to the real value
+      unsigned char num = key - '0'; // converts from ASCII value to the real value
       //Serial.println(key);
       if(num == 1){
         lcd.clear();

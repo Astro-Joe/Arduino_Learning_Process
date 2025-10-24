@@ -70,7 +70,7 @@
 
 
   //---Escape Key---
-  bool escape_key() {
+  bool escape_key_normal() {
     char key = keypad.getKey(); 
     if (key == '0') {
       option_menu();
@@ -78,6 +78,15 @@
     }
     return false;
   }
+
+  void escape_key_module() {
+    char key = keypad.getKey(); 
+    if (key == '*') {
+      lcd.clear();
+      condition_check = false;
+    }
+  }
+
 
 
   //---Loading Animation Screen---
@@ -106,7 +115,7 @@
           case_number = 0;
         }
       }
-      if (escape_key()) {
+      if (escape_key_normal()) {
         return true;
       }
       delay(1);  
@@ -124,7 +133,7 @@
       return true;
     }
 
-    //escape_key();
+    //  ();
 
     lcd.clear();
     
@@ -135,18 +144,16 @@
     if (loading_animation(8, 0)) {
       return true;
     }
-    //escape_key();
+    //  ();
     lcd.clear();
 
     if (!rtc.begin()) {
       lcd.print("RTC Failed");
       lcd.setCursor(0, 1);
-      lcd.print("Press 0 to skip");
+      lcd.print("Press * to skip");
       //Serial.println("RTC FAIL - halting");
       while (condition_check) {
-        if (escape_key()) {
-          condition_check = false;
-        }
+        escape_key_module();    
       } // Halt if RTC not found
     }
     else {
@@ -161,7 +168,7 @@
     display("SD Init");
     lcd.setCursor(0, 1);
     lcd.print("Press 0 to skip");
-    if (loading_animation(11, 0)) {
+    if (loading_animation(7, 0)) {
       return true;
     }
     lcd.clear();
@@ -169,12 +176,10 @@
     if (!SD.begin(CS_Pin)) {
       lcd.print("SD Failed");
       lcd.setCursor(0, 1);
-      lcd.print("Press 0 to skip");
+      lcd.print("Press * to skip");
       //Serial.println("SD FAIL - halting");
       while (condition_check) {
-        if (escape_key()) {
-          condition_check = false;
-        }
+        escape_key_module();
       } // Halt if RTC not found
     }
     else {

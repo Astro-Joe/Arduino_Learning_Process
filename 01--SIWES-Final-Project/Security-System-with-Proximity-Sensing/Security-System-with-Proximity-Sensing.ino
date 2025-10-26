@@ -241,16 +241,19 @@
 
     // after 6000 ms -> follow the distance rule
     if (distance <= 45.0 && distance > 6.0) {
+      lcd.display();
       digitalWrite(lcd_backlight, BACKLIGHT_ON_LEVEL);   // ON
       /*lcd.setCursor(0, 1);
       lcd.print("LCDbacklight ON!"); */ //Debugging purpose
     } 
     else if (distance < 5.0) {
       digitalWrite(lcd_backlight, BACKLIGHT_OFF_LEVEL);  // OFF
+      lcd.noDisplay();
       /*lcd.setCursor(0, 1);
       lcd.print("                  "); */ //Debugging purpose
     }
     else {
+      lcd.noDisplay();
       digitalWrite(lcd_backlight, BACKLIGHT_OFF_LEVEL);
       /*lcd.setCursor(0, 1);
       lcd.print("                  "); */ //Debugging purpose

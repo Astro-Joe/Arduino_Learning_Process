@@ -154,7 +154,7 @@
       //Serial.println("RTC FAIL - halting");
       while (condition_check) {
         escape_key_module();  
-        delay(10);  
+        delay(1);  
       } // Halt if RTC not found
       condition_check = true;
     }
@@ -200,7 +200,17 @@
             // is like a key word that would be transmitted through the TX pin to the slave 
             //board. But for now we have this
             lcd.clear();
-            lcd.print("Pin has been saved");
+            lcd.print("Pin has been ");
+            lcd.setCursor(0, 1);
+            lcd.print("saved!");
+            delay(3000);
+            lcd.clear();
+            while (condition_check) {
+              lcd.print("Press 0 to go ");
+              lcd.setCursor(0, 1);
+              lcd.print("back to menu!     ");
+              escape_key_normal();
+            }
             break;
           }
         }

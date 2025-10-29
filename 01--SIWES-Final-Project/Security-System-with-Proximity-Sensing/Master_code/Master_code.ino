@@ -1,5 +1,4 @@
   #include <Wire.h>
-  #include <SD.h>
   #include <SPI.h>
   #include <RTClib.h>
   #include <Keypad.h>
@@ -11,9 +10,6 @@
   const bool backlight_switch = false;
   #define BACKLIGHT_ON_LEVEL  (backlight_switch ? LOW  : HIGH)
   #define BACKLIGHT_OFF_LEVEL (backlight_switch ? HIGH : LOW)
-  
-  //---SD Chip Select Pin---
-  #define CS_Pin 13
 
   int lcd_backlight = A0;
   int distance;
@@ -29,23 +25,21 @@
   //---Keypad Initialization---
   const unsigned char rows = 4;
   const unsigned char columns = 4;
-  char keys [rows][columns] = {
-    {'1', '2', '3', 'C'},
-    {'4', '5', '6', '_'},
-    {'7', '8', '9', '#'},
-    {'*', '0', '@', 'E'}
+  char keys [rows][columns] = { // All ASCII characters
+    {'1', '2', '3', '@'},
+    {'4', '5', '6', '*'},
+    {'7', '8', '9', '_'},
+    {'C', '0', 'E', '#'}
   };
+
   unsigned char row_pins[rows] = {A1, A2, A3, A4};
-  unsigned char column_pins[columns] = {A5, 10, 11, 12};
+  unsigned char column_pins[columns] = {13, 10, 11, 12};
 
   //---Keypad Initialization---
   Keypad keypad = Keypad(makeKeymap(keys), row_pins, column_pins, rows, columns);
 
   //---RTC Initialization---
   RTC_DS3231 rtc;
-
-  //---File Initializaton---
-  File dataFile;
 
   //---Display function---
   void display(String sentence) {
@@ -80,6 +74,7 @@
     char key = keypad.getKey(); 
     if (key == '0') {
       option_menu();
+      condition_check = false;
       return true;
     }
     return false;
@@ -88,7 +83,6 @@
   void escape_key_module() {
     char key = keypad.getKey(); 
     if (key == '*') {
-      lcd.clear();
       condition_check = false;
     }
   }
@@ -124,7 +118,7 @@
       if (escape_key_normal()) {
         return true;
       }
-      delay(1);  
+      delay(10);  
     }
     return false;
   }
@@ -159,41 +153,14 @@
       lcd.print(F("Press * to skip"));
       //Serial.println("RTC FAIL - halting");
       while (condition_check) {
-        escape_key_module();    
+        escape_key_module();  
+        delay(10);  
       } // Halt if RTC not found
+      condition_check = true;
     }
     else {
-    display(F("RTC Configured   "));
-    lcd.clear();
+      display(F("RTC Configured   "));
     }
-
-    //---SD card Initialaization---
-    condition_check = true;
-    pinMode(CS_Pin, OUTPUT);
-    digitalWrite(CS_Pin, HIGH);
-    display(F("SD Init"));
-    lcd.setCursor(0, 1);
-    lcd.print(F("Press 0 to skip"));
-    if (loading_animation(7, 0)) {
-      return true;
-    }
-    lcd.clear();
-
-    SD.begin(CS_Pin);
-
-    if (!SD.begin(CS_Pin)) {
-      lcd.print(F("SD Failed"));
-      lcd.setCursor(0, 1);
-      lcd.print(F("Press * to skip"));
-      //Serial.println("SD FAIL - halting");
-      while (condition_check) {
-        escape_key_module();
-      } // Halt if RTC not found
-    }
-    else {
-      display(F("SD Configured   "));
-      lcd.clear();
-    }  
     return false;
   }
 
@@ -212,29 +179,41 @@
     char key = keypad.getKey();
       if (key) {
         if (key == 'E') {
-          if (userInput.length() < 8) {
+          if (userInput.length() < 6) {
             lcd.clear();
             lcd.print(F("Pin too short!"));
+            delay(3000);
             userInput = "";
+            pin_mask = "";
             promptInput("New password: ");
           }
-          else if (userInput.length() > 8) {
+          else if (userInput.length() > 6) {
             lcd.clear();
-            lcd.print(F("Max pin length 8"));
+            lcd.print(F("Max pin length 6"));
+            delay(3000);
             userInput = "";
+            pin_mask = "";
             promptInput("New password: ");            
           }
           else {
+            // Since SD module is going to be on the slave board, what supposed to be here
+            // is like a key word that would be transmitted through the TX pin to the slave 
+            //board. But for now we have this
+            lcd.clear();
+            lcd.print("Pin has been saved");
             break;
           }
         }
         else if (key == 'C') {
           userInput = "";
+          pin_mask = "";
           lcd.setCursor(0, 1);
+          lcd.print("                ");
         }
         else {
           userInput += key;
           pin_mask += "*";
+          lcd.setCursor(0, 1);
           lcd.print(pin_mask);
         }
       }
@@ -248,9 +227,8 @@
     //Wire.begin();
 
     //---Initializing Serial monitor and LCD
-    //Serial.begin(9600);
+    Serial.begin(9600);
     lcd.begin(16, 2);
-    // lcd.cursor();
     lcd.noBlink();
     
     pinMode(lcd_backlight, OUTPUT);
@@ -268,13 +246,7 @@
 
     lcd.clear();
 
-    option_menu();    
-
-  //   dataFile = SD.open("passwd.csv", FILE_WRITE);
-  //   if (dataFile) {
-  //     dataFile.
-  //   }
-                                                                                                                                                                                                          
+    option_menu();                                                                                                                                                                                                           
   } 
 
 
@@ -308,12 +280,6 @@
       /*lcd.setCursor(0, 1);
       lcd.print("LCDbacklight ON!"); */ //Debugging purpose
     } 
-    else if (distance < 5.0) {
-      digitalWrite(lcd_backlight, BACKLIGHT_OFF_LEVEL);  // OFF
-      lcd.noDisplay();
-      /*lcd.setCursor(0, 1);
-      lcd.print("                  "); */ //Debugging purpose
-    }
     else {
       lcd.noDisplay();
       digitalWrite(lcd_backlight, BACKLIGHT_OFF_LEVEL);
@@ -324,10 +290,10 @@
 
     if (key) {
       //Serial.println(key);
-      if(key == "1"){
+      if(key == '1'){
         promptInput("New password: ");
       }
-      else if (key == "2") {
+      else if (key == '2') {
         lcd.clear();
         lcd.print(F("Funct 2 Working!"));
       }

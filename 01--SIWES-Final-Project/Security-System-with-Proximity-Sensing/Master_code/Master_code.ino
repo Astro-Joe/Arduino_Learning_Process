@@ -185,7 +185,7 @@
             delay(3000);
             userInput = "";
             pin_mask = "";
-            promptInput("New password: ");
+            promptInput(F("New password: "));
           }
           else if (userInput.length() > 6) {
             lcd.clear();
@@ -193,22 +193,81 @@
             delay(3000);
             userInput = "";
             pin_mask = "";
-            promptInput("New password: ");            
+            promptInput(F("New password: "));            
           }
           else {
             // Since SD module is going to be on the slave board, what supposed to be here
             // is like a key word that would be transmitted through the TX pin to the slave 
             //board. But for now we have this
             lcd.clear();
-            lcd.print("Pin has been ");
+            lcd.print(F("Pin has been "));
             lcd.setCursor(0, 1);
-            lcd.print("saved!");
+            lcd.print(F("saved!"));
             delay(3000);
             lcd.clear();
             while (condition_check) {
-              lcd.print("Press 0 to go ");
+              lcd.print(F("Press 0 to go "));
               lcd.setCursor(0, 1);
-              lcd.print("back to menu!     ");
+              lcd.print(F("back to menu!     "));
+              escape_key_normal();
+            }
+            break;
+          }
+        }
+        else if (key == 'C') {
+          userInput = "";
+          pin_mask = "";
+          lcd.setCursor(0, 1);
+          lcd.print("                ");
+        }
+        else {
+          userInput += key;
+          pin_mask += "*";
+          lcd.setCursor(0, 1);
+          lcd.print(pin_mask);
+        }
+      }
+    }
+    return userInput;
+  }
+
+  //---Login User Input----
+  String loginInput(String prompt) {
+    condition_check = true;
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print(prompt); 
+    lcd.setCursor(0, 1);
+    String userInput = "";
+    String pin_mask = "";
+
+    while (condition_check) {
+    char key = keypad.getKey();
+      if (key) {
+        if (key == 'E') {
+          if (userInput.length() < 6) {
+            lcd.clear();
+            lcd.print(F("Invalid PIN!"));
+            delay(3000);
+            userInput = "";
+            pin_mask = "";
+            loginInput(F("Enter your PIN: "));
+          }
+          else if (userInput.length() > 6) {
+            lcd.clear();
+            lcd.print(F("Invalid PIN!"));
+            delay(3000);
+            userInput = "";
+            pin_mask = "";
+            loginInput(F("Enter your PIN: "));            
+          }
+          else {
+            // Since SD module is going to be on the slave board, what supposed to be here
+            // is like a key word that would be transmitted through the TX pin to the slave 
+            //board. But for now we have this
+            lcd.clear();
+            lcd.print(F("WELCOME!!! "));
+            while (condition_check) {
               escape_key_normal();
             }
             break;
@@ -301,11 +360,10 @@
     if (key) {
       //Serial.println(key);
       if(key == '1'){
-        promptInput("New password: ");
+        promptInput("New pin: ");
       }
       else if (key == '2') {
-        lcd.clear();
-        lcd.print(F("Funct 2 Working!"));
+        loginInput("Enter your PIN: ");
       }
       else {
         lcd.clear();

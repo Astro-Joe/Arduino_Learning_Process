@@ -11,7 +11,10 @@
   #define BACKLIGHT_ON_LEVEL  (backlight_switch ? LOW  : HIGH)
   #define BACKLIGHT_OFF_LEVEL (backlight_switch ? HIGH : LOW)
 
-  int lcd_backlight = A0;
+  const unsigned char lcd_backlight = A0;
+  // NB: for rtc_warning_LED the cathode is connected to A5 while Anode
+  // is connected to +VCC
+  const unsigned char rtc_warning_LED = A5;
   int distance;
 
   //---LCD pins Initialization---
@@ -52,6 +55,15 @@
 
   //---Option Menu---
   void option_menu() {
+
+    //---Checks if the RTC is initialized when the init stage was skipped
+    if (!rtc.begin()) {
+      digitalWrite(rtc_warning_LED, LOW);
+    }
+    else {
+      digitalWrite(rtc_warning_LED, HIGH);
+    }
+
     lcd.setCursor(0, 0);
     lcd.print(F("Press a number"));
     lcd.setCursor(0, 1);
@@ -148,6 +160,7 @@
     lcd.clear();
 
     if (!rtc.begin()) {
+      digitalWrite(rtc_warning_LED, LOW);
       lcd.print(F("RTC Failed"));
       lcd.setCursor(0, 1);
       lcd.print(F("Press * to skip"));
@@ -159,6 +172,7 @@
       condition_check = true;
     }
     else {
+      digitalWrite(rtc_warning_LED, HIGH);
       display(F("RTC Configured   "));
     }
     return false;
@@ -181,26 +195,26 @@
         if (key == 'E') {
           if (userInput.length() < 6) {
             lcd.clear();
-            lcd.print(F("Pin too short!"));
+            lcd.print(F("PIN too short!"));
             delay(3000);
             userInput = "";
             pin_mask = "";
-            promptInput(F("New password: "));
+            promptInput(F("New PIN: "));
           }
           else if (userInput.length() > 6) {
             lcd.clear();
-            lcd.print(F("Max pin length 6"));
+            lcd.print(F("Max PIN length 6"));
             delay(3000);
             userInput = "";
             pin_mask = "";
-            promptInput(F("New password: "));            
+            promptInput(F("New PIN: "));            
           }
           else {
             // Since SD module is going to be on the slave board, what supposed to be here
             // is like a key word that would be transmitted through the TX pin to the slave 
             //board. But for now we have this
             lcd.clear();
-            lcd.print(F("Pin has been "));
+            lcd.print(F("PIN has been "));
             lcd.setCursor(0, 1);
             lcd.print(F("saved!"));
             delay(3000);
@@ -303,6 +317,9 @@
     pinMode(lcd_backlight, OUTPUT);
     digitalWrite(lcd_backlight, HIGH);
 
+    pinMode(rtc_warning_LED, OUTPUT);
+    digitalWrite(rtc_warning_LED, HIGH);
+
     display(F("Security System"));
     delay(2000);
     lcd.clear();
@@ -358,9 +375,12 @@
     
 
     if (key) {
+    if (!rtc.begin()) {
+      digitalWrite(rtc_warning_LED, HIGH);
+    }
       //Serial.println(key);
       if(key == '1'){
-        promptInput("New pin: ");
+        promptInput("New PIN: ");
       }
       else if (key == '2') {
         loginInput("Enter your PIN: ");
